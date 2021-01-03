@@ -1,0 +1,578 @@
+{
+  "description": "Telehealth starter pack",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "next": "confirm_appt",
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 40,
+          "y": -90
+        }
+      }
+    },
+    {
+      "name": "confirm_appt",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "split_confirmation",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "error",
+          "event": "timeout"
+        },
+        {
+          "next": "error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 120,
+          "y": 60
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "Hello, this is your medical office. Your appointment is coming up on {{flow.data.appointment_time}}. Please reply Confirm appt, Cancel appt or Something else. If you'd prefer us to call you now, reply Call.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "split_confirmation",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "send_no_match",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_confirmation_sms",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "confirm",
+              "arguments": [
+                "{{widgets.confirm_appt.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "confirm appt"
+            }
+          ]
+        },
+        {
+          "next": "something_Else_Prompt",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to Something else",
+              "arguments": [
+                "{{widgets.confirm_appt.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "something else"
+            }
+          ]
+        },
+        {
+          "next": "call_user_1",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to call",
+              "arguments": [
+                "{{widgets.confirm_appt.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "call"
+            }
+          ]
+        },
+        {
+          "next": "send_cancellation_sms",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to Cancel",
+              "arguments": [
+                "{{widgets.confirm_appt.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "Cancel appt"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.confirm_appt.inbound.Body}}",
+        "offset": {
+          "x": 120,
+          "y": 270
+        }
+      }
+    },
+    {
+      "name": "send_confirmation_sms",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "log_confirmation",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -320,
+          "y": 540
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thanks! We have confirmed your appointment."
+      }
+    },
+    {
+      "name": "send_cancellation_sms",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "log_confirmation",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 20,
+          "y": 540
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "We understand that plans change. Thanks for letting us know!"
+      }
+    },
+    {
+      "name": "send_no_match",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "confirm_appt",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -330,
+          "y": 280
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "We're sorry, we couldn't understand your response but want to make sure you get the help you need. Please try again, or let us know if now is a good time for us to give you a call."
+      }
+    },
+    {
+      "name": "something_Else_Prompt",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "split_Something_Else",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 410,
+          "y": 540
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "No problem, please reply with one of the following options. \n\nIf you don't see what you need here, please reply 'Call' to reach one of our receptionists so we can help you:\n* Change appointment\n* Request earlier appointment\n* Extend appointment\n* Refill prescription",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "split_Something_Else",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "something_Else_Troubleshooting_Message",
+          "event": "noMatch"
+        },
+        {
+          "next": "ask_To_Call",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to Call",
+              "arguments": [
+                "{{widgets.something_Else_Prompt.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "Call"
+            }
+          ]
+        },
+        {
+          "next": "log_Something_Else",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of Change appointment, request earlier appointment, extend appointment, refill prescription",
+              "arguments": [
+                "{{widgets.something_Else_Prompt.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "Change appointment,Request earlier appointment,Extend appointment,Refill prescription"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.something_Else_Prompt.inbound.Body}}",
+        "offset": {
+          "x": 410,
+          "y": 760
+        }
+      }
+    },
+    {
+      "name": "log_Something_Else",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "something_else_Success",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 760,
+          "y": 980
+        },
+        "parameters": [
+          {
+            "value": "{{widgets.confirm_appt.inbound.Body}}",
+            "key": "request"
+          }
+        ],
+        "url": "https://pear-drever-7797.twil.io/telehealth"
+      }
+    },
+    {
+      "name": "call_user_1",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "annouce_connecting",
+          "event": "answered"
+        },
+        {
+          "next": "call_Troubleshooting_Message",
+          "event": "busy"
+        },
+        {
+          "next": "call_Troubleshooting_Message",
+          "event": "noAnswer"
+        },
+        {
+          "next": "call_Troubleshooting_Message",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": false,
+        "send_digits": "",
+        "sip_auth_username": "",
+        "offset": {
+          "x": 1240,
+          "y": 530
+        },
+        "recording_status_callback": "",
+        "sip_auth_password": "",
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "true",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "5000"
+      }
+    },
+    {
+      "name": "connect_To_Office",
+      "type": "connect-call-to",
+      "transitions": [
+        {
+          "event": "callCompleted"
+        },
+        {
+          "event": "hangup"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1350,
+          "y": 960
+        },
+        "caller_id": "{{contact.channel.address}}",
+        "record": true,
+        "noun": "number",
+        "to": "+447723008984",
+        "timeout": 30
+      }
+    },
+    {
+      "name": "annouce_connecting",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "connect_To_Office",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Emma",
+        "offset": {
+          "x": 1350,
+          "y": 760
+        },
+        "loop": 1,
+        "say": "Ahoy, valued patient! We are connecting you now with one of our operators. Thank you very much for contacting us and we hope you are having a great day so far.",
+        "language": "en-GB"
+      }
+    },
+    {
+      "name": "call_Troubleshooting_Message",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1670,
+          "y": 760
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Hello, we tried to give you a call but it could not be completed.  Please give our office a call at 07483919633"
+      }
+    },
+    {
+      "name": "something_Else_Troubleshooting_Message",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "okay_To_Call_Split",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 430,
+          "y": 980
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "We're sorry, we couldn't understand your input via chat. Would you like our office to give you a call (Yes/No)? If you'd prefer to call us later, please reach us at 07427681881."
+      }
+    },
+    {
+      "name": "something_else_Success",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "next": "error",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 980,
+          "y": 1180
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thanks, we have logged your request and will send you a message or give you a call today to complete your request. If you'd like to reach us in the meantime, give us a call at 07427681881"
+      }
+    },
+    {
+      "name": "goodbye_Message",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 440,
+          "y": 1350
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "No problem, we are sorry we couldn't help you via message today but please give us a call anytime if we can help at 07427681881."
+      }
+    },
+    {
+      "name": "error",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 440,
+          "y": 60
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "We are sorry, but we are having a hard time connecting with you via message, please call our office at 07427681881 to confirm your appointment.  Thank you!"
+      }
+    },
+    {
+      "name": "log_confirmation",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -300,
+          "y": 760
+        },
+        "parameters": [
+          {
+            "value": "{{widgets.confirm_appt.inbound.Body}}",
+            "key": "confirmation"
+          }
+        ],
+        "url": "https://pear-drever-7797.twil.io/confirmation"
+      }
+    },
+    {
+      "name": "ask_To_Call",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "something_Else_Troubleshooting_Message",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 900,
+          "y": 540
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Is now a good time to give you a call to talk (Yes/No)? If you'd prefer to call us later, please reach us at 07427681881.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "okay_To_Call_Split",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "goodbye_Message",
+          "event": "noMatch"
+        },
+        {
+          "next": "call_user_1",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to Yes",
+              "arguments": [
+                "{{widgets.something_Else_Troubleshooting_Message.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "Yes"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.something_Else_Troubleshooting_Message.Body}}",
+        "offset": {
+          "x": 420,
+          "y": 1170
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
