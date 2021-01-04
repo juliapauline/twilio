@@ -1,3 +1,8 @@
+
+// ahoy, world! //
+
+// Thank you for taking the time to read through this telehealth starter pack and for your consideration. //
+
 {
   "description": "Telehealth starter pack",
   "states": [
@@ -137,8 +142,8 @@
       ],
       "properties": {
         "offset": {
-          "x": -320,
-          "y": 540
+          "x": -270,
+          "y": 470
         },
         "from": "{{flow.channel.address}}",
         "to": "{{contact.channel.address}}",
@@ -159,8 +164,8 @@
       ],
       "properties": {
         "offset": {
-          "x": 20,
-          "y": 540
+          "x": 40,
+          "y": 470
         },
         "from": "{{flow.channel.address}}",
         "to": "{{contact.channel.address}}",
@@ -275,7 +280,7 @@
       ],
       "properties": {
         "offset": {
-          "x": 760,
+          "x": 970,
           "y": 980
         },
         "parameters": [
@@ -392,7 +397,7 @@
         },
         "from": "{{flow.channel.address}}",
         "to": "{{contact.channel.address}}",
-        "body": "Hello, we tried to give you a call but it could not be completed.  Please give our office a call at 07483919633"
+        "body": "Hello, we tried to give you a call but it could not be completed.  Please give our office a call at 07723 008984."
       }
     },
     {
@@ -409,12 +414,12 @@
       ],
       "properties": {
         "offset": {
-          "x": 430,
+          "x": 650,
           "y": 980
         },
         "from": "{{flow.channel.address}}",
         "to": "{{contact.channel.address}}",
-        "body": "We're sorry, we couldn't understand your input via chat. Would you like our office to give you a call (Yes/No)? If you'd prefer to call us later, please reach us at 07427681881."
+        "body": "We're sorry, we couldn't understand your input via chat. Would you like our office to give you a call (Yes/No)? If you'd prefer to call us later, please reach us at 07723 008984."
       }
     },
     {
@@ -431,8 +436,8 @@
       ],
       "properties": {
         "offset": {
-          "x": 980,
-          "y": 1180
+          "x": 960,
+          "y": 1170
         },
         "service": "{{trigger.message.InstanceSid}}",
         "channel": "{{trigger.message.ChannelSid}}",
@@ -454,8 +459,8 @@
       ],
       "properties": {
         "offset": {
-          "x": 440,
-          "y": 1350
+          "x": 1270,
+          "y": 1170
         },
         "service": "{{trigger.message.InstanceSid}}",
         "channel": "{{trigger.message.ChannelSid}}",
@@ -484,7 +489,7 @@
         "channel": "{{trigger.message.ChannelSid}}",
         "from": "{{flow.channel.address}}",
         "to": "{{contact.channel.address}}",
-        "body": "We are sorry, but we are having a hard time connecting with you via message, please call our office at 07427681881 to confirm your appointment.  Thank you!"
+        "body": "We are sorry, but we are having a hard time connecting with you via message, please call our office at 07723 008984 to confirm your appointment. Thank you!"
       }
     },
     {
@@ -500,8 +505,8 @@
       ],
       "properties": {
         "offset": {
-          "x": -300,
-          "y": 760
+          "x": -130,
+          "y": 660
         },
         "parameters": [
           {
@@ -535,7 +540,7 @@
         "service": "{{trigger.message.InstanceSid}}",
         "channel": "{{trigger.message.ChannelSid}}",
         "from": "{{flow.channel.address}}",
-        "body": "Is now a good time to give you a call to talk (Yes/No)? If you'd prefer to call us later, please reach us at 07427681881.",
+        "body": "Is now a good time to give you a call to talk (Yes/No)? If you'd prefer to call us later, please reach us at 07723 008984.",
         "timeout": "3600"
       }
     },
@@ -565,7 +570,7 @@
       "properties": {
         "input": "{{widgets.something_Else_Troubleshooting_Message.Body}}",
         "offset": {
-          "x": 420,
+          "x": 600,
           "y": 1170
         }
       }
